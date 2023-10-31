@@ -3,6 +3,7 @@ package validator
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/ArminGh02/go-auth-system/internal/broker"
 	"github.com/ArminGh02/go-auth-system/internal/imagga"
@@ -11,6 +12,8 @@ import (
 	"github.com/ArminGh02/go-auth-system/internal/repository"
 	"github.com/ArminGh02/go-auth-system/internal/s3"
 )
+
+const timeout = 10 * time.Second
 
 type Listener struct {
 	broker  broker.Broker
@@ -28,7 +31,9 @@ func (l *Listener) Listen() error {
 	return l.broker.Subscribe("registrations", "validator", func(message []byte) error {
 		nationalID := string(message)
 
-		user, err := l.users.GetByNationalID(context.TODO(), nationalID)
+		ctx, done := context.WithTimeout(context.Background(), timeout)
+		defer done()
+		user, err := l.users.GetByNationalID(ctx, nationalID)
 		if err != nil {
 			return fmt.Errorf("error getting user by national id: %w", err)
 		}
@@ -54,7 +59,9 @@ func (l *Listener) Listen() error {
 			return fmt.Errorf("error sending email: %w", err)
 		}
 
-		err = l.users.Update(context.Background(), user)
+		ctx, done = context.WithTimeout(context.Background(), timeout)
+		defer done()
+		err = l.users.Update(ctx, user)
 		if err != nil {
 			return fmt.Errorf("error updating user: %w", err)
 		}
