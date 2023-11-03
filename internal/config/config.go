@@ -29,11 +29,9 @@ func New() (*Config, error) {
 		env.Provider(Prefix, ".", func(s string) string {
 			s = strings.ToLower(strings.TrimPrefix(s, Prefix))
 			switch {
-			case strings.HasPrefix(s, "s3_"):
-				return strings.Replace(s, "_", ".", 1)
-			case strings.HasPrefix(s, "imagga_"):
-				return strings.Replace(s, "_", ".", 1)
-			case strings.HasPrefix(s, "mailgun_"):
+			case strings.HasPrefix(s, "s3_"),
+				strings.HasPrefix(s, "imagga_"),
+				strings.HasPrefix(s, "mailgun_"):
 				return strings.Replace(s, "_", ".", 1)
 			default:
 				return s
